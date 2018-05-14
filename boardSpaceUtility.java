@@ -1,4 +1,4 @@
-public class boardSpaceUtility implements boardSpace {
+public class boardSpaceUtility extends boardSpace {
 	String title = new String();
 	int price;
 	int[] rentData; //size 2, enforce

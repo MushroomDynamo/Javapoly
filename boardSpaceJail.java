@@ -1,5 +1,5 @@
-public class boardSpaceJail implements boardSpace {
-	public class boardSpaceJail() {
+public class boardSpaceJail extends boardSpace {
+	/*public class boardSpaceJail() {
 		
-	}
+	}*/
 }
