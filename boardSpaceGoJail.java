@@ -1,11 +1,11 @@
 public class boardSpaceGoJail extends boardSpace {
-	/*boardSpaceJail jail;
-	public class boardSpaceGoJail() {
+	boardSpaceJail jail;
+	public boardSpaceGoJail() {
 		
 	}
-	public class boardSpaceGoJail(boardSpaceJail newJail) {
+	public boardSpaceGoJail(boardSpaceJail newJail) {
 		jail = newJail;
-	}*/
+	}
 	
 	//add setters and getters here
 }

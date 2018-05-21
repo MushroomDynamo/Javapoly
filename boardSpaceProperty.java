@@ -23,6 +23,9 @@ public class boardSpaceProperty extends boardSpace {
 	public void setRGB(int[] newRGB) {
 		rgb = newRGB.clone();
 	}
+	public void setOwner(Player player) {
+		owner = player;
+	}
 	public String getTitle() {
 		return title;
 	}
@@ -34,5 +37,8 @@ public class boardSpaceProperty extends boardSpace {
 	}
 	public int[] getRGB() {
 		return rgb;
+	}
+	public Player getOwner() {
+		return owner;
 	}
 }
