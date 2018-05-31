@@ -29,6 +29,12 @@ public class Player {
 	public void setPosition(boardSpace newPosition) {
 		position = newPosition;
 	}
+	public void addToRollHistory(int[] roll) {
+		Integer[] castRoll = new Integer[2];
+		castRoll[0] = (Integer) roll[0];
+		castRoll[1] = (Integer) roll[1];
+		rollHistory.add(castRoll);
+	}
 	
 	public Boolean getIsHuman() {
 		return isHuman;
@@ -44,5 +50,8 @@ public class Player {
 	}
 	public boardSpace getPosition() {
 		return position;
+	}
+	public ArrayList<Integer[]> getRollHistory() {
+		return rollHistory;
 	}
 }
