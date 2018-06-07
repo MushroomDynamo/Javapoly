@@ -6,11 +6,12 @@ import java.util.Scanner;
 //import javafx.*;
 
 public class Monopoly { //make all classes capital
-	static LinkedList<boardSpace> boardOrder = new LinkedList<boardSpace>();
+	static ArrayList<boardSpace> boardOrder = new ArrayList<boardSpace>();
 	static ArrayList<Player> players = new ArrayList<Player>();
 	static ArrayList<Card> chanceDeck = new ArrayList<Card>();
 	static ArrayList<Card> communityDeck = new ArrayList<Card>();
 	static String input;
+	static int integerInput;
 	static Scanner scanner = new Scanner(System.in);
 	static Boolean gameInPlay = true;
 	
@@ -56,33 +57,36 @@ public class Monopoly { //make all classes capital
 		for (int i = 0; i < 4; i++) {
 			players.add(new Player(1000, getFirstInstanceOfSpace(boardSpaceGo.class, 0)));
 		}
-		/*boardSpaceGo testSpace = (boardSpaceGo) getFirstInstanceOfSpace(boardSpaceGo.class, 0);
-		if (testSpace instanceof boardSpaceGo) { //check that method recurses correctly
-			System.out.println(testSpace.getAward());
-		}*/
 	}
 	
 	public static void processTurn(Player player) {
-		int outputRoll = rollDice(player);
-		player.setPosition(boardOrder.get(getFirstInstanceOfSpaceIndex(player.getPosition().getClass(),0) + outputRoll));
-		System.out.println(outputRoll);
-		System.out.println(player.getPosition()); //debug
-		boardSpace position = player.getPosition();
+		managePlayerProperties(player);
 		
-		/*if (checkDoubles(player) == true) {
+		int outputRoll = rollDice(player);
+		//player.setPosition(boardOrder.get(getFirstInstanceOfSpaceIndex(player.getPosition().getClass(),0) + outputRoll));
+		player.setPosition(boardOrder.get(boardOrder.indexOf(player.getPosition()) + outputRoll));
+		System.out.println(outputRoll);
+		boardSpace position = player.getPosition();
+		if (position instanceof boardSpaceProperty) {
+			System.out.println("You have landed on Property: " + ((boardSpaceProperty) position).getTitle());
+		}
+		
+		if (checkDoubles(player) == true) {
 			System.out.println("Sent to jail");
 			player.setPosition(getFirstInstanceOfSpace(boardSpaceJail.class, 0));
-		} else*/ if (player.getPosition() instanceof boardSpaceProperty) {
+		} else if (player.getPosition() instanceof boardSpaceProperty) {
 			if (((boardSpaceProperty) player.getPosition()).getOwner() == null) {
 				System.out.println("Would you like to purchase this property? Price is " + ((boardSpaceProperty) position).getRentData()[0] + " (y/n)");
 				input = scanner.nextLine();
 				if (input.equals("y")) {
 					player.setFunds(player.getFunds() - ((boardSpaceProperty) position).getRentData()[0]);
 					System.out.println("Your funds are now " + player.getFunds());
+               ((boardSpaceProperty) player.getPosition()).setOwner(player);
 				}
 			} else {
 				System.out.println("This space is owned. Rent must be paid in the amount of " + ((boardSpaceProperty) position).getRentData()[1]);
 				player.setFunds(player.getFunds() - ((boardSpaceProperty) position).getRentData()[1]); //need case for player ownership
+            ((boardSpaceProperty) position).getOwner().setFunds(((boardSpaceProperty) position).getOwner().getFunds() + ((boardSpaceProperty) position).getRentData()[1]);
 			}
 		} else if (player.getPosition() instanceof boardSpaceGoJail) {
 			System.out.println("Sent to jail");
@@ -135,18 +139,102 @@ public class Monopoly { //make all classes capital
 			output[1] = 1;
 		}
 		player.addToRollHistory(output);
-		return output[0] + output[1]; //will do things with the actual array and player object later
+		return output[0] + output[1];
 	}
 	
 	public static Boolean checkDoubles(Player player) {
 		ArrayList<Integer[]> rollHistory = player.getRollHistory();
 		Iterator<Integer[]> iterator = rollHistory.iterator();
+      int counter = 3;
 		while (iterator.hasNext()) {
 			Integer[] roll = iterator.next();
 			if (!(roll[0].equals(roll[1]))) {
 				return false;
 			}
+         counter--;
 		}
-		return true;
+      if (counter == 0) {
+		   return true;
+      } else {
+         return false;
+      }
+	}
+   
+   public static ArrayList<boardSpace> dumpOwnership(Player player) {
+		ArrayList<boardSpace> properties = new ArrayList<boardSpace>();
+		Iterator<boardSpace> iterator = boardOrder.iterator();
+		while (iterator.hasNext()) {
+			boardSpace property = iterator.next();
+			if (property instanceof boardSpaceProperty) {
+				boardSpaceProperty propertyP = (boardSpaceProperty) property;
+				if (player.equals(propertyP.getOwner())) {
+					properties.add(propertyP);
+				}
+			} else if (property instanceof boardSpaceUtility) {
+				boardSpaceUtility propertyU = (boardSpaceUtility) property;
+				if (player.equals(propertyU.getOwner())) {
+					properties.add(propertyU);
+				}
+			}
+		}
+		return properties;
+	}
+	
+	public static void managePlayerProperties(Player player) {
+		boardSpace property;
+		boardSpaceProperty propertyP;
+		boardSpaceUtility propertyU;
+		
+		System.out.println("Would you like to manage your properties? (y/n)");
+		input = scanner.nextLine();
+		if (input.equals("n")) {
+			return;
+		}
+		
+		while (true) {
+			ArrayList<boardSpace> properties = dumpOwnership(player);
+			Iterator<boardSpace> iterator = properties.iterator();
+			int i = 0;
+			while (iterator.hasNext()) {
+				property = iterator.next();
+				if (property instanceof boardSpaceProperty) {
+					propertyP = (boardSpaceProperty) property;
+					System.out.println(i + ": " + propertyP.getTitle());
+				} else if (property instanceof boardSpaceUtility) {
+					propertyU = (boardSpaceUtility) property;
+					System.out.println(i + ": " + propertyU.getTitle());
+				} else { //UNSUPPORTED OWNERSHIP TYPE!!
+					return;
+				}
+				i++;
+			}
+			if (properties.size() == 0) {
+				System.out.println("Error. No properties to manage.");
+				return;
+			}
+			System.out.println("Please type the index of the property you wish to manage.");
+			integerInput = scanner.nextInt();
+			property = properties.get(integerInput);
+			if (property instanceof boardSpaceProperty) {
+				propertyP = (boardSpaceProperty) property;
+				System.out.println("Managing property " + propertyP.getTitle());
+				System.out.println("A house costs " + propertyP.getRentData()[6] + ". Your funds are " + player.getFunds() + ". Purchase? (y/n)");
+				input = scanner.nextLine();
+				if (!input.equals("n")) {
+					System.out.println("Purchased!");
+					player.setFunds(player.getFunds() - propertyP.getRentData()[6]); //needs validity checks
+					propertyP.setHouses(propertyP.getHouses() + 1); //also validity checks
+				}
+			} else if (property instanceof boardSpaceUtility) {
+				propertyU = (boardSpaceUtility) property;
+				System.out.println("Managing a utility.");
+			}
+			
+			System.out.println("Done managing properties? (y/n)");
+			input = scanner.nextLine();
+			if (input.equals("y")) {
+				return;
+			}
+		}
 	}
 }

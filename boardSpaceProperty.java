@@ -3,12 +3,14 @@ public class boardSpaceProperty extends boardSpace {
 	int[] rentData; //should be size 8, investigate enforcing this
 	int price;
 	int[] rgb;
+	int houses;
 	
 	public boardSpaceProperty(String newTitle, int[] newRentData, int newPrice, int[] newRGB) {
 		setTitle(newTitle);
 		setRentData(newRentData);
 		setPrice(newPrice);
 		setRGB(newRGB);
+		setHouses(0);
 	}
 	
 	public void setTitle(String newTitle) {
@@ -26,6 +28,9 @@ public class boardSpaceProperty extends boardSpace {
 	public void setOwner(Player player) {
 		owner = player;
 	}
+	public void setHouses(int newHouses) {
+		houses = newHouses;
+	}
 	public String getTitle() {
 		return title;
 	}
@@ -40,5 +45,8 @@ public class boardSpaceProperty extends boardSpace {
 	}
 	public Player getOwner() {
 		return owner;
+	}
+	public int getHouses() {
+		return houses;
 	}
 }

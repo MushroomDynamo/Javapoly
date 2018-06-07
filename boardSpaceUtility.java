@@ -1,4 +1,5 @@
 public class boardSpaceUtility extends boardSpace {
+	Player owner;
 	String title = new String();
 	int price;
 	int[] rentData; //size 2, enforce
@@ -17,6 +18,9 @@ public class boardSpaceUtility extends boardSpace {
 	public void setPrice(int newPrice) {
 		price = newPrice;
 	}
+	public void setOwner(Player newPlayer) {
+		owner = newPlayer;
+	}
 	public String getTitle() {
 		return title;
 	}
@@ -25,5 +29,8 @@ public class boardSpaceUtility extends boardSpace {
 	}
 	public int getPrice() {
 		return price;
+	}
+	public Player getOwner() {
+		return owner;
 	}
 }
