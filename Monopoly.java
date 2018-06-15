@@ -21,15 +21,22 @@ public class Monopoly {
 	public static void main(String[] args) {
 		initialize();
 		while (gameInPlay) {
-			if (players.size() == 0) {
+			if (players.size() == 1) {
 				System.out.println("The game is over! Only one player left.");
 				break;
 			}
-			Iterator<Player> iterator = players.iterator();
-			while (iterator.hasNext()) {
-				System.out.println("\n\nNext player's turn");
-				processTurn(iterator.next());
+			
+			for (int i = 0; i < 4; i++) {
+				if (players.get(i).getFunds() <= 0) {
+					players.remove(i);
+				}
 			}
+			
+			for (int i = 0; i < 4; i++) {
+				System.out.println("Player " + i + "'s turn");
+				processTurn(players.get(i));
+			}
+			
 			System.out.println("Continue play? (y/n)");
 			input = scanner.nextLine();
 			if (input.equals("n")) {
@@ -105,71 +112,64 @@ public class Monopoly {
 	}
 	
 	public static void processTurn(Player player) {
+		managePlayerProperties(player);
 		
-		if (player.getFunds() <= 0) { //Check whether to boot player from the game
-			System.out.println("You are out of the game! No funds remaining!");
-			int playerToRemoveIndex = players.indexOf(player);
-			players.remove(playerToRemoveIndex);
+		int outputRoll = rollDice(player);
+		if (boardOrder.indexOf(player.getPosition()) + outputRoll > (boardOrder.size() - 1)) {
+			int difference = boardOrder.size() - boardOrder.indexOf(player.getPosition());
+			player.setPosition(go);
+			player.setFunds(player.getFunds() + go.getAward());
+			System.out.println("Passed go! You receive " + go.getAward());
+			player.setPosition(boardOrder.get(boardOrder.indexOf(player.getPosition()) + (outputRoll - difference)));
 		} else {
-			managePlayerProperties(player);
-			
-			int outputRoll = rollDice(player);
-			if (boardOrder.indexOf(player.getPosition()) + outputRoll > (boardOrder.size() - 1)) {
-				int difference = boardOrder.size() - boardOrder.indexOf(player.getPosition());
-				player.setPosition(go);
-				player.setFunds(player.getFunds() + go.getAward());
-				System.out.println("Passed go! You receive " + go.getAward());
-				player.setPosition(boardOrder.get(boardOrder.indexOf(player.getPosition()) + (outputRoll - difference)));
+			player.setPosition(boardOrder.get(boardOrder.indexOf(player.getPosition()) + outputRoll));
+		}
+		System.out.println("You rolled an " + outputRoll);
+		boardSpace position = player.getPosition();
+		if (position instanceof boardSpaceProperty) {
+			System.out.println("You have landed on Property: " + ((boardSpaceProperty) position).getTitle());
+		}
+		
+		if (checkDoubles(player) == true) {
+			System.out.println("Sent to jail");
+			player.setPosition(jail);
+		} else if (player.getPosition() instanceof boardSpaceProperty) {
+			if (((boardSpaceProperty) player.getPosition()).getOwner() == null) {
+				System.out.println("Would you like to purchase this property? Price is " + ((boardSpaceProperty) position).getPrice() + " (y/n)");
+				input = scanner.nextLine();
+				if (input.equals("y")) {
+					player.setFunds(player.getFunds() - ((boardSpaceProperty) position).getPrice());
+					System.out.println("Your funds are now " + player.getFunds());
+               ((boardSpaceProperty) player.getPosition()).setOwner(player);
+				}
 			} else {
-				player.setPosition(boardOrder.get(boardOrder.indexOf(player.getPosition()) + outputRoll));
+				System.out.println("This space is owned. Rent must be paid in the amount of " + ((boardSpaceProperty) position).getRent());
+				player.setFunds(player.getFunds() - ((boardSpaceProperty) position).getRent());
+            ((boardSpaceProperty) position).getOwner().setFunds(((boardSpaceProperty) position).getOwner().getFunds() + ((boardSpaceProperty) position).getRent());
 			}
-			System.out.println(outputRoll);
-			boardSpace position = player.getPosition();
-			if (position instanceof boardSpaceProperty) {
-				System.out.println("You have landed on Property: " + ((boardSpaceProperty) position).getTitle());
-			}
-			
-			if (checkDoubles(player) == true) {
-				System.out.println("Sent to jail");
-				player.setPosition(jail);
-			} else if (player.getPosition() instanceof boardSpaceProperty) {
-				if (((boardSpaceProperty) player.getPosition()).getOwner() == null) {
-					System.out.println("Would you like to purchase this property? Price is " + ((boardSpaceProperty) position).getRentData()[0] + " (y/n)");
-					input = scanner.nextLine();
-					if (input.equals("y")) {
-						player.setFunds(player.getFunds() - ((boardSpaceProperty) position).getRentData()[0]);
-						System.out.println("Your funds are now " + player.getFunds());
-	               ((boardSpaceProperty) player.getPosition()).setOwner(player);
-					}
-				} else {
-					System.out.println("This space is owned. Rent must be paid in the amount of " + ((boardSpaceProperty) position).getRentData()[1]);
-					player.setFunds(player.getFunds() - ((boardSpaceProperty) position).getRentData()[1]);
-	            ((boardSpaceProperty) position).getOwner().setFunds(((boardSpaceProperty) position).getOwner().getFunds() + ((boardSpaceProperty) position).getRentData()[1]);
-				}
-			} else if (player.getPosition() instanceof boardSpaceGoJail) {
-				System.out.println("Sent to jail");
-				player.setPosition(jail);
-			} else if (player.getPosition() instanceof boardSpaceCard) {
-				int cardID = (int) Math.floor(Math.random() * 4);
-				switch (cardID) {
-					case 0:
-						System.out.println("You drew a card! Go directly to jail.");
-						player.setPosition(jail);
-						break;
-					case 1:
-						System.out.println("You drew a card! Go directly to GO and collect $" + go.getAward());
-						player.setPosition(go);
-						player.setFunds(player.getFunds() + go.getAward());
-						break;
-					case 2:
-						System.out.println("You drew a card! You gain $1,000 from a lottery ticket.");
-						player.setFunds(player.getFunds() + 1000);
-						break;
-					case 3:
-						System.out.println("You drew a card! You lose $1,000 due to updated tax code.");
-						player.setFunds(player.getFunds() - 1000);
-						break;
-				}
+		} else if (player.getPosition() instanceof boardSpaceGoJail) {
+			System.out.println("Sent to jail");
+			player.setPosition(jail);
+		} else if (player.getPosition() instanceof boardSpaceCard) {
+			int cardID = (int) Math.floor(Math.random() * 4);
+			switch (cardID) {
+				case 0:
+					System.out.println("You drew a card! Go directly to jail.");
+					player.setPosition(jail);
+					break;
+				case 1:
+					System.out.println("You drew a card! Go directly to GO and collect $" + go.getAward());
+					player.setPosition(go);
+					player.setFunds(player.getFunds() + go.getAward());
+					break;
+				case 2:
+					System.out.println("You drew a card! You gain $1,000 from a lottery ticket.");
+					player.setFunds(player.getFunds() + 1000);
+					break;
+				case 3:
+					System.out.println("You drew a card! You lose $1,000 due to updated tax code.");
+					player.setFunds(player.getFunds() - 1000);
+					break;
 			}
 		}
 	}

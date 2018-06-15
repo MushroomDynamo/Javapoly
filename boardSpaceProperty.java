@@ -35,7 +35,7 @@ public class boardSpaceProperty extends boardSpace {
 		return title;
 	}
 	public int[] getRentData() {
-		return rentData;
+		return rentData.clone();
 	}
 	public int getPrice() {
 		return price;
@@ -48,5 +48,8 @@ public class boardSpaceProperty extends boardSpace {
 	}
 	public int getHouses() {
 		return houses;
+	}
+	public int getRent() {
+		return rentData[0];
 	}
 }
